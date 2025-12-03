@@ -20,6 +20,13 @@ export interface PortfolioItem {
   title: string;
   icon: LucideIcon;
   desc: string;
+  // Detailed view optional properties
+  longDesc?: string;
+  client?: string;
+  year?: string;
+  role?: string;
+  link?: string;
+  previewImage?: string;
 }
 
 export interface Skill {

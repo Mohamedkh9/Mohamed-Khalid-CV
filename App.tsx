@@ -2,9 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { 
   User, Briefcase, Palette, Mail, Phone, MapPin, 
   Download, ExternalLink, Linkedin, Send, PenTool, Video, 
-  Image as ImageIcon, Layers, X, Eye, Menu, Home, Grid, Globe, CheckCircle, Sparkles, Facebook, Moon, Sun
+  Image as ImageIcon, Layers, X, Eye, Menu, Home, Grid, Globe, CheckCircle, Sparkles, Facebook, Moon, Sun, ArrowRight
 } from 'lucide-react';
-import { Lang, Translation, Skill } from './types';
+import { Lang, Translation, Skill, PortfolioItem } from './types';
 
 const App: React.FC = () => {
   const [activeSection, setActiveSection] = useState<string>('home');
@@ -13,6 +13,9 @@ const App: React.FC = () => {
   const [messageSent, setMessageSent] = useState<boolean>(false);
   const [lang, setLang] = useState<Lang>('ar');
   const [isDarkMode, setIsDarkMode] = useState<boolean>(true);
+  
+  // Portfolio Modal State
+  const [selectedProject, setSelectedProject] = useState<PortfolioItem | null>(null);
 
   // Contact Form State
   const [contactName, setContactName] = useState('');
@@ -175,7 +178,7 @@ const App: React.FC = () => {
     { name: 'Adobe Photoshop', code: 'Ps', color: '#31A8FF', textColor: 'white' },
     { name: 'Adobe Illustrator', code: 'Ai', color: '#FF9A00', textColor: '#330000' },
     { name: 'Adobe InDesign', code: 'Id', color: '#FF3366', textColor: 'white' },
-    { name: 'After Effects', code: 'Ae', color: '#D291FF', textColor: '#330033' },
+    { name: 'After Effects', code: 'Ae', color: '#D291FF', textColor: 'white' },
     { name: 'Premiere Pro', code: 'Pr', color: '#9999FF', textColor: '#000033' },
     { name: 'Cinema 4D', code: '3D', color: '#004477', textColor: 'white' },
     { name: 'Microsoft Word', code: 'W', color: '#2B579A', textColor: 'white' },
@@ -197,6 +200,29 @@ const App: React.FC = () => {
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  // Body Scroll Lock & Escape Key Handler
+  useEffect(() => {
+    if (selectedProject || isCvOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setSelectedProject(null);
+        setIsCvOpen(false);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      document.body.style.overflow = 'unset';
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [selectedProject, isCvOpen]);
 
   const scrollToSection = (id: string) => {
     const element = document.getElementById(id);
@@ -512,7 +538,7 @@ const App: React.FC = () => {
               
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {t.portfolio.items.map((item, index) => (
-                   <div key={index} className="group relative overflow-hidden rounded-xl shadow-lg bg-white dark:bg-slate-800 aspect-[4/3] cursor-pointer border border-slate-200 dark:border-slate-700/50 hover:border-indigo-500/50 transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl hover:shadow-indigo-500/20">
+                   <div key={index} onClick={() => setSelectedProject(item)} className="group relative overflow-hidden rounded-xl shadow-lg bg-white dark:bg-slate-800 aspect-[4/3] cursor-pointer border border-slate-200 dark:border-slate-700/50 hover:border-indigo-500/50 transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl hover:shadow-indigo-500/20">
                     {/* Overlay with stronger gradient and slide-up text */}
                     <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-800/60 to-transparent opacity-60 group-hover:opacity-100 transition-all duration-500 z-20 flex flex-col justify-end p-6">
                       <span className="text-indigo-400 text-xs font-bold uppercase tracking-wider mb-1 translate-y-4 group-hover:translate-y-0 transition-transform duration-500 ease-out">{item.category}</span>
@@ -609,6 +635,119 @@ const App: React.FC = () => {
                  className="w-full h-full border-0"
                  title="CV Preview"
                />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Project Details Modal */}
+      {selectedProject && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md" onClick={() => setSelectedProject(null)}>
+          <div 
+            className="bg-white dark:bg-slate-900 w-full max-w-4xl max-h-[90vh] rounded-2xl shadow-2xl flex flex-col overflow-y-auto animate-fade-in-up border border-slate-200 dark:border-slate-800" 
+            onClick={e => e.stopPropagation()}
+          >
+            {/* Modal Header */}
+            <div className="sticky top-0 z-10 flex justify-between items-start p-6 bg-white/95 dark:bg-slate-900/95 backdrop-blur-sm border-b border-slate-200 dark:border-slate-800">
+               <div>
+                  <span className="inline-block px-3 py-1 mb-2 text-xs font-bold rounded-full bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400">
+                    {selectedProject.category}
+                  </span>
+                  <h3 className="font-bold text-2xl text-slate-900 dark:text-white leading-tight">
+                    {selectedProject.title}
+                  </h3>
+               </div>
+               <button 
+                onClick={() => setSelectedProject(null)} 
+                className="p-2 -mr-2 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors"
+               >
+                 <X size={24} />
+               </button>
+            </div>
+
+            {/* Modal Content */}
+            <div className="p-6 md:p-8 space-y-8">
+              
+              {/* Large Image Placeholder */}
+              <div className="w-full aspect-video rounded-xl bg-slate-100 dark:bg-slate-800 flex flex-col items-center justify-center border-2 border-dashed border-slate-300 dark:border-slate-700">
+                  {selectedProject.previewImage ? (
+                    <img src={selectedProject.previewImage} alt={selectedProject.title} className="w-full h-full object-cover rounded-xl" />
+                  ) : (
+                    <>
+                      <selectedProject.icon size={80} className="text-slate-300 dark:text-slate-600 mb-4" />
+                      <p className="text-slate-500 dark:text-slate-400 font-medium">
+                        {lang === 'ar' ? 'صورة معاينة المشروع' : 'Project Preview Image Placeholder'}
+                      </p>
+                      <p className="text-slate-400 dark:text-slate-500 text-sm mt-2">
+                        {lang === 'ar' ? 'ستظهر الصور عالية الدقة هنا' : 'Hi-Res images would appear here'}
+                      </p>
+                    </>
+                  )}
+              </div>
+
+              {/* Description */}
+              <div className="grid md:grid-cols-3 gap-8">
+                <div className="md:col-span-2 space-y-4">
+                  <h4 className="text-xl font-bold text-slate-900 dark:text-white">
+                    {lang === 'ar' ? 'عن المشروع' : 'About the Project'}
+                  </h4>
+                  <p className="text-slate-600 dark:text-slate-300 leading-relaxed">
+                    {selectedProject.longDesc || (lang === 'ar' 
+                      ? 'هذا نص عنصر نائب لوصف تفصيلي للمشروع. هنا يمكنك التحدث عن التحديات التي واجهتها، وعملية التصميم، والأدوات المستخدمة، والنتيجة النهائية التي تم تحقيقها للعميل.' 
+                      : 'This is placeholder text for a detailed project description. Here you would talk about the challenges faced, the design process, the tools used, and the final outcome achieved for the client.')}
+                  </p>
+                  {!selectedProject.longDesc && (
+                    <div className="p-4 rounded-lg bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 italic text-sm">
+                       {lang === 'ar' ? 'سيتم إضافة التفاصيل قريباً...' : 'Details coming soon...'}
+                    </div>
+                  )}
+                </div>
+
+                {/* Sidebar Info & Links */}
+                <div className="space-y-6">
+                   <div>
+                     <h5 className="font-bold text-slate-900 dark:text-white mb-3">
+                       {lang === 'ar' ? 'تفاصيل المشروع' : 'Project Details'}
+                     </h5>
+                     <ul className="space-y-2 text-sm text-slate-600 dark:text-slate-400">
+                       <li className="flex justify-between py-2 border-b border-slate-200 dark:border-slate-800">
+                         <span>{lang === 'ar' ? 'العميل' : 'Client'}</span>
+                         <span className="font-medium text-slate-800 dark:text-slate-200">
+                           {selectedProject.client || (lang === 'ar' ? 'اسم العميل' : 'Client Name')}
+                         </span>
+                       </li>
+                       <li className="flex justify-between py-2 border-b border-slate-200 dark:border-slate-800">
+                         <span>{lang === 'ar' ? 'السنة' : 'Year'}</span>
+                         <span className="font-medium text-slate-800 dark:text-slate-200">
+                           {selectedProject.year || '2024'}
+                         </span>
+                       </li>
+                       <li className="flex justify-between py-2 border-b border-slate-200 dark:border-slate-800">
+                         <span>{lang === 'ar' ? 'الدور' : 'Role'}</span>
+                         <span className="font-medium text-slate-800 dark:text-slate-200">
+                           {selectedProject.role || (lang === 'ar' ? 'مصمم رئيسي' : 'Lead Designer')}
+                         </span>
+                       </li>
+                     </ul>
+                   </div>
+
+                   <div className="space-y-3">
+                     <a 
+                       href={selectedProject.link || '#'} 
+                       target="_blank"
+                       rel="noreferrer"
+                       className={`w-full py-3 px-4 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg transition-colors flex items-center justify-center gap-2 ${!selectedProject.link ? 'opacity-50 cursor-not-allowed' : ''}`}
+                       onClick={(e) => !selectedProject.link && e.preventDefault()}
+                     >
+                       {lang === 'ar' ? 'مشاهدة المشروع' : 'View Live Project'} <ExternalLink size={16} />
+                     </a>
+                     <button className="w-full py-3 px-4 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 hover:border-indigo-500 text-slate-700 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400 font-semibold rounded-lg transition-colors flex items-center justify-center gap-2 opacity-50 cursor-not-allowed">
+                       {lang === 'ar' ? 'دراسة الحالة' : 'Read Case Study'} <ArrowRight size={16} />
+                     </button>
+                   </div>
+                </div>
+              </div>
+
             </div>
           </div>
         </div>
